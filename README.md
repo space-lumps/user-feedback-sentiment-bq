@@ -14,7 +14,7 @@ This project analyzes structured user feedback (thumbs up/down, flags, and comme
 - Python 3.11
 - OpenAI GPT-4o API
 - Google BigQuery
-- `.env` for secret management
+- `.env` for secret management (for local testing only--prod version incorporates Google Secret manager)
 - Optional: Metabase, Slack (for alerts)
 
 ## 🗂️ Project Structure
