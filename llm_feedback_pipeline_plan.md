@@ -2,13 +2,13 @@
 
 ---
 
-### 📖 Overview
+### Overview
 
 This document outlines the complete implementation plan for an LLM-based sentiment scoring pipeline that analyzes user feedback and flags from our app and widget. The goal is to extract structured, fine-grained sentiment labels and topic aspects using OpenAI or Claude.
 
 ---
 
-### ✅ Scope
+### Scope
 
 - Input: Model-generated view of all user feedback and manual flags
 - Output: Scored results in a BigQuery table
@@ -53,7 +53,7 @@ This BigQuery model combines all relevant user comments from message feedback an
 
 ---
 
-### 📅 Scheduling Recommendation
+### Scheduling Recommendation
 
 - **Frequency:** Once per **week**
 - **Tool:** Use the team’s existing GCP orchestration tool (e.g., Cloud Function, Composer, or similar)
@@ -62,7 +62,7 @@ This BigQuery model combines all relevant user comments from message feedback an
 
 ---
 
-### 💪 Output Table: `feedback_sentiment_output`
+### Output Table: `feedback_sentiment_output`
 
 Stores all LLM-processed feedback entries.
 
@@ -85,7 +85,7 @@ Stores all LLM-processed feedback entries.
 
 ---
 
-### 📄 Python Pipeline Summary
+### Python Pipeline Summary
 
 This is meant as a general overview of the process. All of this is already built into the .py project file, but will need slight edits and tweaks to be fully production-ready.
 
@@ -126,7 +126,7 @@ to_gbq(df, 'your_dataset.feedback_sentiment_output', project_id='your-project', 
 
 ---
 
-### 🧠 Example LLM Prompt Template (Python)
+### Example LLM Prompt Template (Python)
 
 ```python
 def build_prompt(system_message, user_comment):
@@ -149,7 +149,7 @@ Output JSON:
 
 ---
 
-### 🔌 OpenAI Prompt Execution
+### OpenAI Prompt Execution
 
 ```python
 import openai
@@ -178,7 +178,7 @@ def send_prompt(prompt_text, model="gpt-4", max_tokens=60, temperature=0):
 
 ---
 
-### 🔌 Claude Prompt Execution (Anthropic API)
+### Claude Prompt Execution (Anthropic API)
 
 ```python
 import anthropic
@@ -204,7 +204,7 @@ def send_prompt_claude(prompt_text, model="claude-3-opus-20240229", max_tokens=6
 
 ---
 
-### ⚖️ Prompt Configuration Details
+### Prompt Configuration Details
 
 - Prompt is assembled and sent in Python code
 - Use `temperature = 0` for deterministic responses
@@ -214,7 +214,7 @@ def send_prompt_claude(prompt_text, model="claude-3-opus-20240229", max_tokens=6
 
 ---
 
-### 🚀 Deployment Notes
+### Deployment Notes
 
 - Store OpenAI/Claude API key in Secret Manager -- this will need to be added to the .py project file
 - Use a service account with BigQuery read/write access
@@ -222,7 +222,7 @@ def send_prompt_claude(prompt_text, model="claude-3-opus-20240229", max_tokens=6
 
 ---
 
-### ✨ Future Enhancements
+### Future Enhancements
 
 - Move model to a table for persistent tracking
 - Version and log prompt behavior for auditing
