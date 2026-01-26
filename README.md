@@ -4,10 +4,10 @@ This project analyzes structured user feedback (thumbs up/down, flags, and comme
 
 ## 💡 Features
 
-- 🔍 Classifies sentiment as positive or negative with **numerical intensity from -2 to +2**
-- 🧠 Uses GPT-4o to analyze comment tone and identify specific aspects being addressed
-- 📊 Saves structured output to a BigQuery table for downstream use in dashboards (e.g. Metabase)
-- 🔁 Designed for batch re-processing and easy automation via scheduled queries or Cloud Functions
+- Classifies sentiment as positive or negative with **numerical intensity from -2 to +2**
+- Uses GPT-4o to analyze comment tone and identify specific aspects being addressed
+- Saves structured output to a BigQuery table for downstream use in dashboards (e.g. Metabase)
+- Designed for batch re-processing and easy automation via scheduled queries or Cloud Functions
 
 ## 🛠️ Stack
 
@@ -82,4 +82,4 @@ MIT License. Feel free to use and adapt this pipeline for your own feedback anal
 
 ---
 
-🧠 Built with care to bring nuance to user sentiment.
+Built with care to bring nuance to user sentiment.
