@@ -25,12 +25,18 @@ This project analyzes structured user feedback (thumbs up/down, flags, and comme
 
 ```
 user-feedback-sentiment-bq/
-├── test_llm_pipeline.py       # Test script to run on sample CSV data
-├── main_llm_pipeline.py       # Production script for full BigQuery dataset
-├── prompts.py                 # Modular prompt templates for GPT-4o
-├── utils.py                   # Utilities for API calls, error handling, etc.
+├── src/                                   # Main Python code
+│   ├── llm_feedback_pipeline.py           # Core LLM + BigQuery sentiment pipeline
+│   ├── test_llm_mini_pipeline.py          # Quick local test on small hardcoded/sample data
+│   └── test_llm_on_full_dataset.py        # End-to-end test against real BigQuery (use with caution)
+├── sql/
+│   └── user_feedback_and_flags_model.sql  # Source table schema / view definition
+├── docs/
+│   └── llm_feedback_pipeline_plan.md      # Early design notes & prompt thinking trace
 ├── requirements.txt
-└── .env.example               # Example environment variable setup
+├── .gitignore
+├── LICENSE
+└── README.md
 ```
 
 ## ⚙️ How It Works
@@ -58,12 +64,14 @@ user-feedback-sentiment-bq/
 
 3. **Run the test script** (20-row sample):
    ```bash
-   python test_llm_pipeline.py
+   python src/test_llm_mini_pipeline.py.py
    ```
 
 4. **Run full BigQuery pipeline**:
    ```bash
-   python main_llm_pipeline.py
+    python src/llm_feedback_pipeline.py
+    # or for validation:
+    python src/test_llm_on_full_dataset.py
    ```
 
 ## 📈 Example Output Schema

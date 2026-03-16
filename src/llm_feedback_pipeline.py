@@ -22,10 +22,10 @@ output_table = "feedback_sentiment_output"
 
 # Better option: retrieve secrets from Google Cloud Secret Manager
 def get_secret(secret_id, project_id):
-	client = secretmanager.SecretManagerServiceClient()
-	secret_path = f"projects/{project_id}/secrets/{secret_id}/versions/latest"
-	response = client.access_secret_version(name=secret_path)
-	return response.payload.data.decode("UTF-8")
+    client = secretmanager.SecretManagerServiceClient()
+    secret_path = f"projects/{project_id}/secrets/{secret_id}/versions/latest"
+    response = client.access_secret_version(name=secret_path)
+    return response.payload.data.decode("UTF-8")
 
 # Example secretkey retrieval:
 openai.api_key = get_secret("openai-api-key", project_id)
@@ -51,7 +51,7 @@ WHERE NOT EXISTS (
 '''
 
 def build_prompt(system_message, user_comment):
-	return f"""You are a sentiment analysis engine.
+    return f"""You are a sentiment analysis engine.
 
 Given the following AI-generated system message and a user comment in response to it, return a JSON object with:
 
