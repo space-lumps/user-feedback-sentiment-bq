@@ -1,5 +1,19 @@
+# ----------------------------------------------------------------------
+# test_llm_on_full_dataset.py
+#
+# LOCAL DEMO MODE
+# This script defaults to sample_feedback.csv (committed fake data)
+# so anyone can clone and run it immediately without BigQuery, API keys,
+# or real production data.
+#
+# To run on your own full dataset:
+#   - Change input_path below to your CSV file path
+#   - Optionally remove or comment out any cleaning filters if not needed
+# ----------------------------------------------------------------------
+
 import json
 import os
+import re
 
 import pandas as pd
 from dotenv import load_dotenv
@@ -10,8 +24,11 @@ load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Input and output filenames
-input_path = "user_feedback_and_flags.csv"
-output_path = "llm_output_test.csv"
+# Default: uses the committed sample_feedback.csv so script runs locally without real data
+# To run on your own full dataset, change this path to your CSV file
+input_path = "sample_feedback.csv"
+# input_path = "user_feedback_and_flags.csv"  # <-- uncomment for real/large data
+output_path = "sample_llm_output_full_test.csv"  # Renamed slightly to avoid confusion
 
 # Load your dataset
 df = pd.read_csv(input_path)
@@ -22,7 +39,7 @@ df = df[df["system_message"].notnull() & df["system_message"].str.strip().ne("")
 results = []
 
 # Loop through each row
-for _, row in df.iterrows():
+for idx, row in df.iterrows():
     system_message = str(row["system_message"])
     user_comment = str(row["user_comment"])
 
@@ -44,6 +61,7 @@ Output JSON:
 """
 
     try:
+        print(f"Processing row {idx + 1} of {len(df)}...")
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
@@ -57,8 +75,32 @@ Output JSON:
             max_tokens=60,
         )
 
-        content = response.choices[0].message.content.strip()
-        parsed = json.loads(content)
+        # clean raw input (is this the right label or is it cleaning raw output)
+        raw_output = response.choices[0].message.content
+
+        # Debug raw output (for debugging only)
+        # print(f"DEBUG raw response for row {row.get('user_id')}:\n{raw_output}\n---")
+
+        # Robust markdown/JSON wrapper removal
+        clean_output = re.sub(
+            r"^```(?:json)?\s*|\s*```$",
+            "",
+            raw_output.strip(),
+            flags=re.IGNORECASE | re.MULTILINE,
+        )
+        clean_output = clean_output.strip()
+
+        # Additional safety: remove any leading "json" or trailing junk
+        clean_output = re.sub(
+            r"^(json\s*|\s*json$)", "", clean_output, flags=re.IGNORECASE
+        ).strip()
+
+        try:
+            parsed = json.loads(clean_output)
+        except json.JSONDecodeError as json_err:
+            print(f"❌ JSON parse failed on row {row.get('user_id')}: {json_err}")
+            print(f"Cleaned content was:\n{clean_output}")
+            continue
 
         # Add original row data + LLM response
         results.append(

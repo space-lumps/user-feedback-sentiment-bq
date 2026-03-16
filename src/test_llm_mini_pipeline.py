@@ -1,3 +1,13 @@
+# ----------------------------------------------------------------------
+# test_llm_mini_pipeline.py
+#
+# LOCAL DEMO MODE
+# This script defaults to sample_feedback.csv (committed fake data)
+# so anyone can clone and run it immediately without BigQuery, API keys,
+# or real production data.
+#
+# To test with your own full dataset, change input_path to your file.
+# ----------------------------------------------------------------------
 import json
 import os
 import re
@@ -11,10 +21,10 @@ load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Load input CSV
-df = pd.read_csv("user_feedback_and_flags.csv")
+df = pd.read_csv("sample_feedback.csv")
 
-# # Sample first 20 rows for testing
-# df_sample = df.head(20)
+# # Sample first 5 rows for testing
+df = df.head(5)
 
 results = []
 
@@ -89,7 +99,7 @@ Output JSON:
         print(f"❌ Error on row: {idx} -", e)
 
 # ✅ Save output for Metabase testing
-output_path = "sample_output_fulldataset.csv"
+output_path = "sample_llm_output_mini_test.csv"
 if results:
     pd.DataFrame(results).to_csv(output_path, index=False)
     print(f"✅ Done! Output saved to {output_path}")
