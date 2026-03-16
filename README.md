@@ -8,10 +8,43 @@ This project analyzes structured user feedback (thumbs up/down, flags, and comme
 
 ## Features
 
-- Classifies sentiment as positive or negative with **numerical intensity from -2 to +2**
-- Uses GPT-4o to analyze comment tone and identify specific aspects being addressed
-- Saves structured output to a BigQuery table for downstream use in dashboards (e.g. Metabase)
-- Designed for batch re-processing and easy automation via scheduled queries or Cloud Functions
+- Classifies feedback sentiment with **numerical intensity from -2 to +2**
+- Extracts structured labels for **sentiment type** and **feedback aspect**
+- Uses **GPT-4o** with a constrained JSON output schema
+- Supports **two execution modes**:
+  - **Local CSV mode** for testing and development
+  - **BigQuery mode** for production pipelines
+- Includes:
+  - retry logic for OpenAI API calls
+  - strict JSON parsing and validation
+  - optional Slack notifications for pipeline runs
+
+## Architecture
+The pipeline processes user feedback using an LLM to produce structured sentiment labels that can be analyzed in analytics dashboards.
+
+```mermaid
+flowchart TD
+
+A["User Feedback Source
+BigQuery table or local CSV"]
+
+B["LLM Sentiment Pipeline
+Python + OpenAI GPT-4o"]
+
+C["Structured Sentiment Output
+BigQuery table"]
+
+D["Analytics Dashboard
+Looker Studio"]
+
+E["Monitoring / Alerts
+Slack"]
+
+A --> B
+B --> C
+C --> D
+C --> E
+```
 
 ## Stack
 
@@ -19,7 +52,7 @@ This project analyzes structured user feedback (thumbs up/down, flags, and comme
 - OpenAI GPT-4o API
 - Google BigQuery
 - `.env` for secret management (for local testing only--prod version incorporates Google Secret manager)
-- Optional: Metabase (for visualizations), Slack (for alerts)
+- Optional: Looker Studio (for dashboards), Slack (for alerts)
 
 ## Project Structure
 
@@ -41,12 +74,45 @@ user-feedback-sentiment-bq/
 
 ## How It Works
 
-1. Query feedback from BigQuery (e.g. thumbs up/down with free-text comments)
-2. For each row, send a prompt to GPT-4o to:
-   - Assign a sentiment score from -2 to +2
-   - Extract the topic or aspect of the original system message being commented on
-3. Return structured JSON output
-4. Insert results back into a BigQuery output table (e.g. `Model.feedback_sentiment_output`)
+The pipeline can run in **two modes**.
+
+### Local Development Mode
+
+1. Load feedback rows from `sample_feedback.csv`
+2. Send each comment to GPT-4o
+3. Parse structured JSON output
+4. Save results to a local CSV file
+
+### Production Mode
+
+1. Query new feedback rows from BigQuery
+2. Send each comment to GPT-4o
+3. Parse structured JSON output
+4. Append results to a BigQuery output table
+5. Optionally send a Slack notification when processing completes
+
+
+## Example LLM Classification
+
+Example input row:
+
+System message:
+
+> "You can improve your resume by adding measurable achievements."
+
+User comment:
+
+> "This advice was helpful but the example link was broken."
+
+LLM output:
+
+```json
+{
+  "sentiment_score": 1,
+  "sentiment_type": "suggestion",
+  "aspect": "completeness"
+}
+```
 
 ## Running the Pipeline Locally
 
@@ -56,15 +122,17 @@ pip install -r requirements.txt
 ```
 
 2. **Set up your `.env`**:
+Local development requires:
 ```
 OPENAI_API_KEY=your-key-here
 BIGQUERY_PROJECT=your-gcp-project
 BIGQUERY_DATASET=your-dataset
 ```
+In production, secrets should be retrieved from **Google Secret Manager** instead of `.env`.
 
 3. **Run the test script** (20-row sample):
 ```bash
-python src/test_llm_mini_pipeline.py.py
+python src/test_llm_mini_pipeline.py
 ```
 
 4. **Run full BigQuery pipeline**:
@@ -74,14 +142,42 @@ python src/llm_feedback_pipeline.py
 python src/test_llm_on_full_dataset.py
 ```
 
+## Pipeline Modes
+
+The main pipeline (`llm_feedback_pipeline.py`) supports two execution paths.
+
+### Local CSV Mode (default)
+
+Used for development and testing.
+
+Input: `sample_feedback.csv`
+Output: `simulated_full_pipeline_local_test.csv`
+
+### BigQuery Mode
+
+Enable by uncommenting the BigQuery section in the script.
+
+Input table: `{project}.{dataset}.user_feedback_and_flags`
+Output table: `{project}.{dataset}.feedback_sentiment_output`
+
+
 ## Example Output Schema
 
-| feedback_id | sentiment_score | sentiment_label     | comment_aspect       | model_used |
-|-------------|------------------|----------------------|-----------------------|-------------|
-| 12345       | -2               | strongly negative    | message clarity       | gpt-4o      |
-| 12346       | +1               | slightly positive    | system tone           | gpt-4o      |
+| column | description |
+|------|-------------|
+| user_id | user identifier |
+| chat_id | chat session id |
+| message_id | message identifier |
+| timestamp | original feedback timestamp |
+| user_comment | free-text user comment |
+| system_message | AI message the user reacted to |
+| source_type | thumbs / flag source |
+| user_feedback_type | thumbs_up / thumbs_down / flag |
+| sentiment_score | integer from -2 to +2 |
+| sentiment_type | complaint / suggestion / compliment / neutral |
+| aspect | feedback topic classification |
+| llm_timestamp | time sentiment analysis was generated |
 
----
 
 ## Future Plans
 
@@ -89,6 +185,16 @@ python src/test_llm_on_full_dataset.py
 - Hook into Slack or email alerts on extreme negative feedback
 - Compare LLM model performance (Claude vs GPT-4o)
 - Export labeled data for model fine-tuning
+
+
+## Safety & Reliability
+
+The pipeline includes several safeguards:
+
+- retry logic for transient OpenAI API failures
+- JSON schema validation before writing results
+- duplicate prevention when writing local output
+- optional Slack alerts for monitoring scheduled runs
 
 ---
 
