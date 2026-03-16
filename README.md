@@ -1,10 +1,15 @@
 # User Feedback Sentiment (BigQuery + GPT-4o)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python](https://img.shields.io/badge/python-3.11-blue?logo=python&logoColor=white)](https://www.python.org/)
-[![BigQuery](https://img.shields.io/badge/Google%20BigQuery-4285F4?logo=google-cloud&logoColor=white)](https://cloud.google.com/bigquery)
-[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o-412991?logo=openai&logoColor=white)](https://openai.com/)
+
+[License: MIT](https://opensource.org/licenses/MIT)
+[Python](https://www.python.org/)
+[BigQuery](https://cloud.google.com/bigquery)
+[OpenAI](https://openai.com/)
 
 This project analyzes structured user feedback (thumbs up/down, flags, and comments) using a fine-grained LLM-based sentiment scoring system. It processes data from a BigQuery table, generates numerical sentiment scores and aspect labels via OpenAI’s GPT-4o, and stores the results back in BigQuery for visualization and monitoring.
+
+## Project Goal
+
+Convert unstructured user feedback (thumbs, flags, comments) into structured sentiment metrics using an LLM so product teams can quantify user satisfaction and identify UX issues in analytics dashboards.
 
 ## Features
 
@@ -20,6 +25,7 @@ This project analyzes structured user feedback (thumbs up/down, flags, and comme
   - optional Slack notifications for pipeline runs
 
 ## Architecture
+
 The pipeline processes user feedback using an LLM to produce structured sentiment labels that can be analyzed in analytics dashboards.
 
 ```mermaid
@@ -49,7 +55,7 @@ C --> E
 ## Stack
 
 - Python 3.11
-- OpenAI GPT-4o API
+- OpenAI GPT-4o API (temperature=0)
 - Google BigQuery
 - `.env` for secret management (for local testing only--prod version incorporates Google Secret manager)
 - Optional: Looker Studio (for dashboards), Slack (for alerts)
@@ -91,7 +97,6 @@ The pipeline can run in **two modes**.
 4. Append results to a BigQuery output table
 5. Optionally send a Slack notification when processing completes
 
-
 ## Example LLM Classification
 
 Example input row:
@@ -117,25 +122,31 @@ LLM output:
 ## Running the Pipeline Locally
 
 1. **Install dependencies**:
+
 ```bash
 pip install -r requirements.txt
 ```
 
-2. **Set up your `.env`**:
+1. **Set up your `.env`**:
+
 Local development requires:
+
 ```
 OPENAI_API_KEY=your-key-here
 BIGQUERY_PROJECT=your-gcp-project
 BIGQUERY_DATASET=your-dataset
 ```
+
 In production, secrets should be retrieved from **Google Secret Manager** instead of `.env`.
 
-3. **Run the test script** (20-row sample):
+1. **Run the test script** (20-row sample):
+
 ```bash
 python src/test_llm_mini_pipeline.py
 ```
 
-4. **Run full BigQuery pipeline**:
+1. **Run full BigQuery pipeline**:
+
 ```bash
 python src/llm_feedback_pipeline.py
 # or for validation:
@@ -160,23 +171,23 @@ Enable by uncommenting the BigQuery section in the script.
 Input table: `{project}.{dataset}.user_feedback_and_flags`
 Output table: `{project}.{dataset}.feedback_sentiment_output`
 
-
 ## Example Output Schema
 
-| column | description |
-|------|-------------|
-| user_id | user identifier |
-| chat_id | chat session id |
-| message_id | message identifier |
-| timestamp | original feedback timestamp |
-| user_comment | free-text user comment |
-| system_message | AI message the user reacted to |
-| source_type | thumbs / flag source |
-| user_feedback_type | thumbs_up / thumbs_down / flag |
-| sentiment_score | integer from -2 to +2 |
-| sentiment_type | complaint / suggestion / compliment / neutral |
-| aspect | feedback topic classification |
-| llm_timestamp | time sentiment analysis was generated |
+
+| column             | description                                   |
+| ------------------ | --------------------------------------------- |
+| user_id            | user identifier                               |
+| chat_id            | chat session id                               |
+| message_id         | message identifier                            |
+| timestamp          | original feedback timestamp                   |
+| user_comment       | free-text user comment                        |
+| system_message     | AI message the user reacted to                |
+| source_type        | thumbs / flag source                          |
+| user_feedback_type | thumbs_up / thumbs_down / flag                |
+| sentiment_score    | integer from -2 to +2                         |
+| sentiment_type     | complaint / suggestion / compliment / neutral |
+| aspect             | feedback topic classification                 |
+| llm_timestamp      | time sentiment analysis was generated         |
 
 
 ## Future Plans
@@ -185,7 +196,6 @@ Output table: `{project}.{dataset}.feedback_sentiment_output`
 - Hook into Slack or email alerts on extreme negative feedback
 - Compare LLM model performance (Claude vs GPT-4o)
 - Export labeled data for model fine-tuning
-
 
 ## Safety & Reliability
 
