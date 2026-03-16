@@ -1,33 +1,35 @@
-**LLM Sentiment Scoring Pipeline for User Feedback and Flags**
+# LLM-Based Sentiment Analysis Pipeline for User Feedback
+### Status: Prototype / Proof-of-Concept — demonstrates end-to-end LLM + BigQuery workflow
 
 ---
 
-### Overview
+## Overview
 
-This document outlines the complete implementation plan for an LLM-based sentiment scoring pipeline that analyzes user feedback and flags from our app and widget. The goal is to extract structured, fine-grained sentiment labels and topic aspects using OpenAI or Claude.
+This document outlines the complete implementation plan for an LLM-based sentiment scoring pipeline that analyzes user feedback and flags from a chat application. The goal is to extract structured, fine-grained sentiment labels and topic aspects using OpenAI or Claude.
 
 ---
 
-### Scope
+## Scope
 
 - Input: Model-generated view of all user feedback and manual flags
 - Output: Scored results in a BigQuery table
-- Pipeline: Scheduled Python job via the team's existing GCP orchestration process
+- Pipeline: Scheduled Python job via a scheduled GCP job (Cloud Functions, Composer, etc.)
 
 ---
 
-### 🔗 Source Model: `Model.user_feedback_and_flags`
+## Source Model: `demo_dataset.user_feedback_and_flags`
 
 This BigQuery model combines all relevant user comments from message feedback and manual flags.
+All BigQuery references use placeholder names (`demo-project-id.demo_dataset.*`) for demonstration purposes.
 
 **Columns in the model:**
 
 - `timestamp` (TIMESTAMP)
 - `system_message` (STRING)
 - `user_comment` (STRING)
-- `source_type` (STRING) — e.g., 'message\_feedback', 'user\_flag'
+- `source_type` (STRING) — e.g., 'message_feedback', 'user_flag'
 - `activity_name` (STRING)
-- `user_type_full_name` (STRING)
+- `user_type_name` (STRING)
 - `user_id` (INT64)
 - `chat_id` (INT64)
 - `message_id` (INT64)
@@ -41,7 +43,7 @@ This BigQuery model combines all relevant user comments from message feedback an
 
 **Why not a table (yet)?**
 
-- Low volume (\~100 rows/year)
+- Low volume (~100 rows/year)
 - No need for persistent state tracking
 - Processing state is captured in the output table itself
 
@@ -49,20 +51,20 @@ This BigQuery model combines all relevant user comments from message feedback an
 
 - You want to manually reprocess or add retry logic
 - Feedback volume increases significantly
-- You want to expose per-row processing state (e.g. `llm_processed`, timestamps, flags)
+- You want to expose per-row processing state (e.g. `llm_processed`, `timestamp`, flags)
 
 ---
 
-### Scheduling Recommendation
+## Scheduling Recommendation
 
 - **Frequency:** Once per **week**
-- **Tool:** Use the team’s existing GCP orchestration tool (e.g., Cloud Function, Composer, or similar)
+- **Tool:** GCP orchestration tool (e.g., Cloud Function, Composer, or similar)
 - **Trigger:** Pull and process new feedback only
 - **Suggested Cron:** `0 13 * * 1` (every Monday @ 8am UTC / 3am CDT)
 
 ---
 
-### Output Table: `feedback_sentiment_output`
+## Output Table: `feedback_sentiment_output`
 
 Stores all LLM-processed feedback entries.
 
@@ -77,17 +79,17 @@ Stores all LLM-processed feedback entries.
 - `source_type` (STRING)
 - `user_feedback_type` (STRING)
 - `sentiment_score` (INT64, range −2 to +2)
-- `sentiment_type` (STRING: complaint, suggestion, compliment, neutral)
-- `aspect` (STRING: response\_quality, completeness, speed\_or\_timing, interface\_or\_functionality, praise)
-- `llm_timestamp` (TIMESTAMP: indicates when the analysis took place)
+- `sentiment_type` (STRING: 'complaint', 'suggestion', 'compliment', 'neutral')
+- `aspect` (STRING: 'response_quality', 'completeness', 'speed_or_timing', 'interface_or_functionality', 'praise')
+- `llm_timestamp` (TIMESTAMP: indicates when the analysis took place)
 
 **How we track processed rows:** Instead of including a `llm_processed` flag in the model, we check whether each `(user_id, message_id, user_comment)` already exists in the output table. This eliminates the need for marking rows and avoids reprocessing.
 
 ---
 
-### Python Pipeline Summary
+## Python Pipeline Summary
 
-This is meant as a general overview of the process. All of this is already built into the .py project file, but will need slight edits and tweaks to be fully production-ready.
+This is meant as a general overview of the process. All of this is already implemented in `src/llm_feedback_pipeline.py`, but will need slight edits and tweaks to be fully production-ready.
 
 **Step-by-step:**
 
@@ -95,12 +97,12 @@ This is meant as a general overview of the process. All of this is already built
 
 ```sql
 SELECT *
-FROM `your-project.your-dataset.Model.user_feedback_and_flags`
+FROM `demo-project-id.demo_dataset.user_feedback_and_flags`
 WHERE NOT EXISTS (
-  SELECT 1 FROM `your-project.your-dataset.feedback_sentiment_output` AS out
-  WHERE out.user_id = user_feedback_and_flags.user_id
-    AND out.message_id = user_feedback_and_flags.message_id
-    AND out.user_comment = user_feedback_and_flags.user_comment
+  SELECT 1 FROM `demo-project-id.demo_dataset.feedback_sentiment_output` AS out
+  WHERE out.user_id = `user_feedback_and_flags`.user_id
+    AND out.message_id = `user_feedback_and_flags`.message_id
+    AND out.user_comment = `user_feedback_and_flags`.user_comment
 )
 ```
 
@@ -121,12 +123,12 @@ WHERE NOT EXISTS (
 ```python
 from pandas_gbq import to_gbq
 
-to_gbq(df, 'your_dataset.feedback_sentiment_output', project_id='your-project', if_exists='append')
+to_gbq(df, 'demo_dataset.feedback_sentiment_output', project_id='demo-project-id', if_exists='append')
 ```
 
 ---
 
-### Example LLM Prompt Template (Python)
+## Example LLM Prompt Template (Python)
 
 ```python
 def build_prompt(system_message, user_comment):
@@ -149,7 +151,7 @@ Output JSON:
 
 ---
 
-### OpenAI Prompt Execution
+## OpenAI Prompt Execution
 
 ```python
 import openai
@@ -178,7 +180,7 @@ def send_prompt(prompt_text, model="gpt-4", max_tokens=60, temperature=0):
 
 ---
 
-### Claude Prompt Execution (Anthropic API)
+## Claude Prompt Execution (Anthropic API)
 
 ```python
 import anthropic
@@ -204,7 +206,7 @@ def send_prompt_claude(prompt_text, model="claude-3-opus-20240229", max_tokens=6
 
 ---
 
-### Prompt Configuration Details
+## Prompt Configuration Details
 
 - Prompt is assembled and sent in Python code
 - Use `temperature = 0` for deterministic responses
@@ -214,20 +216,16 @@ def send_prompt_claude(prompt_text, model="claude-3-opus-20240229", max_tokens=6
 
 ---
 
-### Deployment Notes
+## Deployment Notes
 
-- Store OpenAI/Claude API key in Secret Manager -- this will need to be added to the .py project file
+- In this configuration, secrets are loaded from GCP Secrets Manager for improved security
+- In test scripts, environment variables are used to store secrets for ease of testing
 - Use a service account with BigQuery read/write access
-- Use Slack (built-in, just add your API key) or email alert if any new rows are processed
+- Optional alerting via email/Slack
 
 ---
 
-### Future Enhancements
+## Future Enhancements
 
 - Move model to a table for persistent tracking
 - Version and log prompt behavior for auditing
-
----
-
-Contact: @YourName | Last updated: 2025-06-27
-
