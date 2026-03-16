@@ -1,9 +1,10 @@
 # User Feedback Sentiment (BigQuery + GPT-4o)
 
-[License: MIT](https://opensource.org/licenses/MIT)
-[Python](https://www.python.org/)
-[BigQuery](https://cloud.google.com/bigquery)
-[OpenAI](https://openai.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python](https://img.shields.io/badge/python-3.11-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![BigQuery](https://img.shields.io/badge/Google%20BigQuery-4285F4?logo=google-cloud&logoColor=white)](https://cloud.google.com/bigquery)
+[![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o-412991?logo=openai&logoColor=white)](https://openai.com/)
+[![Release](https://img.shields.io/github/v/release/space-lumps/user-feedback-sentiment-bq?color=green)](https://github.com/space-lumps/user-feedback-sentiment-bq/releases)
 
 This project analyzes structured user feedback (thumbs up/down, flags, and comments) using a fine-grained LLM-based sentiment scoring system. It processes data from a BigQuery table, generates numerical sentiment scores and aspect labels via OpenAI’s GPT-4o, and stores the results back in BigQuery for visualization and monitoring.
 
