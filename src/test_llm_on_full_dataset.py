@@ -1,8 +1,9 @@
-import pandas as pd
-from openai import OpenAI
-import os
 import json
+import os
+
+import pandas as pd
 from dotenv import load_dotenv
+from openai import OpenAI
 
 # Load .env for OpenAI API key
 load_dotenv()
@@ -46,30 +47,35 @@ Output JSON:
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": "You are a helpful assistant that only responds with valid JSON."},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "system",
+                    "content": "You are a helpful assistant that only responds with valid JSON.",
+                },
+                {"role": "user", "content": prompt},
             ],
             temperature=0,
-            max_tokens=60
+            max_tokens=60,
         )
 
         content = response.choices[0].message.content.strip()
         parsed = json.loads(content)
 
         # Add original row data + LLM response
-        results.append({
-            "user_id": row.get("user_id"),
-            "chat_id": row.get("chat_id"),
-            "message_id": row.get("message_id"),
-            "timestamp": row.get("timestamp"),
-            "user_comment": user_comment,
-            "system_message": system_message,
-            "source_type": row.get("source_type"),
-            "user_feedback_type": row.get("user_feedback_type"),
-            "sentiment_score": parsed["sentiment_score"],
-            "sentiment_type": parsed["sentiment_type"],
-            "aspect": parsed["aspect"]
-        })
+        results.append(
+            {
+                "user_id": row.get("user_id"),
+                "chat_id": row.get("chat_id"),
+                "message_id": row.get("message_id"),
+                "timestamp": row.get("timestamp"),
+                "user_comment": user_comment,
+                "system_message": system_message,
+                "source_type": row.get("source_type"),
+                "user_feedback_type": row.get("user_feedback_type"),
+                "sentiment_score": parsed["sentiment_score"],
+                "sentiment_type": parsed["sentiment_type"],
+                "aspect": parsed["aspect"],
+            }
+        )
 
     except Exception as e:
         print(f"❌ Error on row: {row.get('user_id')} - {e}")

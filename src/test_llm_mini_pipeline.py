@@ -1,9 +1,10 @@
-import pandas as pd
-from openai import OpenAI
-import os
 import json
+import os
 import re
+
+import pandas as pd
 from dotenv import load_dotenv
+from openai import OpenAI
 
 # Load env
 load_dotenv()
@@ -51,11 +52,14 @@ Output JSON:
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": "You are a helpful assistant that only responds with valid JSON."},
-                {"role": "user", "content": prompt}
+                {
+                    "role": "system",
+                    "content": "You are a helpful assistant that only responds with valid JSON.",
+                },
+                {"role": "user", "content": prompt},
             ],
             temperature=0,
-            max_tokens=60
+            max_tokens=60,
         )
 
         raw_output = response.choices[0].message.content
@@ -66,19 +70,21 @@ Output JSON:
         clean_output = re.sub(r"^```(?:json)?|```$", "", raw_output.strip()).strip()
         parsed = json.loads(clean_output)
 
-        results.append({
-            "user_id": user_id,
-            "chat_id": chat_id,
-            "message_id": message_id,
-            "timestamp": timestamp,
-            "user_comment": user_comment,
-            "system_message": system_message,
-            "source_type": source_type,
-            "user_feedback_type": user_feedback_type,
-            "sentiment_score": parsed["sentiment_score"],
-            "sentiment_type": parsed["sentiment_type"],
-            "aspect": parsed["aspect"]
-        })
+        results.append(
+            {
+                "user_id": user_id,
+                "chat_id": chat_id,
+                "message_id": message_id,
+                "timestamp": timestamp,
+                "user_comment": user_comment,
+                "system_message": system_message,
+                "source_type": source_type,
+                "user_feedback_type": user_feedback_type,
+                "sentiment_score": parsed["sentiment_score"],
+                "sentiment_type": parsed["sentiment_type"],
+                "aspect": parsed["aspect"],
+            }
+        )
     except Exception as e:
         print(f"❌ Error on row: {idx} -", e)
 
