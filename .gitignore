@@ -28,3 +28,6 @@ data/
 *.log
 tmp/
 temp/
+
+# Allow the small demo/sample data file
+!sample_feedback.csv
