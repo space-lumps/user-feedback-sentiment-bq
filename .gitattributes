@@ -1,0 +1,5 @@
+# Tell GitHub Linguist to treat .sql files as the SQL language
+# and include them in language percentage statistics
+
+*.sql linguist-language=SQL
+*.sql linguist-detectable=true
