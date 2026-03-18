@@ -1,6 +1,15 @@
--- Combine and dedupe user feedback and flags for LLM sentiment scoring
--- This demo_dataset merges fact_chat_msg_feedback and fact_chat_manualflag into one consistent structure
--- Demo version: all tables prefixed with demo_dataset
+-- ----------------------------------------------------------------------
+-- Model: user_feedback_and_flags_model
+-- Purpose: Combines and deduplicates user feedback messages and manual flags into a single, clean dataset
+--          suitable for downstream LLM-based sentiment scoring.
+-- 
+-- Source tables:
+--   - fact_chat_msg_feedback
+--   - fact_chat_manualflag
+-- 
+-- Output: Materialized as table `user_feedback_and_flags` in the demo_dataset schema
+-- Note: This is a demo version — all referenced tables are prefixed with 'demo_dataset'.
+-- ----------------------------------------------------------------------
 
 WITH message_feedback_raw AS (
   SELECT 
