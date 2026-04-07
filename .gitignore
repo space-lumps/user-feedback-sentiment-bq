@@ -1,5 +1,6 @@
 # Python / virtual environments
 venv/
+.venv/
 __pycache__/
 *.pyc
 *.pyo
@@ -28,6 +29,9 @@ data/
 *.log
 tmp/
 temp/
+
+# Local tool scripts
+tools/
 
 # Allow the small demo/sample data file
 !sample_feedback.csv

@@ -6,6 +6,10 @@
 [![OpenAI](https://img.shields.io/badge/OpenAI-GPT--4o-412991?logo=openai&logoColor=white)](https://openai.com/)
 [![Release](https://img.shields.io/github/v/release/space-lumps/user-feedback-sentiment-bq?color=green)](https://github.com/space-lumps/user-feedback-sentiment-bq/releases)
 
+<p align="center">
+  <img src="assets/images/sentiment_report.png" alt="User Feedback Sentiment Scores" width="100%">
+</p>
+
 This project analyzes structured user feedback (thumbs up/down, flags, and comments) using a fine-grained LLM-based sentiment scoring system. It processes data from a BigQuery table, generates numerical sentiment scores and aspect labels via OpenAI’s GPT-4o, and stores the results back in BigQuery for visualization and monitoring.
 
 ## Project Goal
