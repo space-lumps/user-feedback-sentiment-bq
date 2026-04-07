@@ -26,6 +26,7 @@ import time
 import pandas as pd
 import requests
 from dotenv import load_dotenv
+
 # from google.cloud import bigquery, secretmanager  # uncomment for Production mode
 from openai import OpenAI
 
@@ -129,7 +130,12 @@ def send_prompt(prompt_text, model="gpt-4o", max_tokens=60, temperature=0, retri
             # Some LLM responses may include markdown-style code blocks (e.g., ```json ... ```)
             # even when instructed not to. This strips those wrappers to ensure valid JSON parsing.
             if raw_output.startswith("```"):
-                raw_output = raw_output.removeprefix("```json").removeprefix("```").removesuffix("```").strip()
+                raw_output = (
+                    raw_output.removeprefix("```json")
+                    .removeprefix("```")
+                    .removesuffix("```")
+                    .strip()
+                )
             return raw_output
         except Exception as e:
             print(f"❌ Error from OpenAI (attempt {attempt + 1}): {e}")
@@ -175,7 +181,9 @@ def load_input_data():
         "user_feedback_type",
     ]
 
-    missing_columns = [column for column in required_columns if column not in df.columns]
+    missing_columns = [
+        column for column in required_columns if column not in df.columns
+    ]
     if missing_columns:
         raise ValueError(f"Missing required columns in {INPUT_CSV}: {missing_columns}")
 
@@ -198,7 +206,9 @@ def save_results_locally(result_df, processed_count):
         )
 
     result_df.to_csv(OUTPUT_CSV, index=False)
-    print(f"✅ Processed {processed_count} rows and saved results to local file: {OUTPUT_CSV}.")
+    print(
+        f"✅ Processed {processed_count} rows and saved results to local file: {OUTPUT_CSV}."
+    )
     send_slack_notification(f"✅ LLM pipeline processed {processed_count} rows.")
 
 
@@ -216,7 +226,9 @@ def save_results_to_bq(result_df, processed_count):
         if_exists="append",
     )
 
-    print(f"✅ Processed {processed_count} rows and saved results to Bigquery table: {output_table}.")
+    print(
+        f"✅ Processed {processed_count} rows and saved results to Bigquery table: {output_table}."
+    )
     send_slack_notification(f"✅ LLM pipeline processed {processed_count} new rows.")
 
 
